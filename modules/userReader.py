@@ -122,10 +122,7 @@ class userReader(commands.Cog):
         # Also update the bot activity here
         onlineCount = len([user for user in self.users if self.users[user].online])
         if onlineCount != self.onlineCount:
-            if onlineCount == 0:
-                playerString = _("NO_BODY")
-            else:
-                playerString = ngettext("ONE_PLAYER", "MANY_PLAYERS", onlineCount) % {'num': onlineCount}
+            playerString = f'{onlineCount} players'
             
             PlayWith = _("PLAY_PZ_WITH")
             # have to abbreviate or it gets truncated
