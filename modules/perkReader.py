@@ -10,8 +10,14 @@ import modules.embed
 import modules.usersData
 import modules.serverData
 
+
 class perkReader(commands.Cog):
     """Class which handles the Perk log files"""
+
+    notifyJoin = True
+    notifyDeath = True
+    notifyPerk = True
+    notifyCreateChar = True
 
     def __init__(self, bot, logPath, dataPath):
         self.bot = bot
@@ -69,21 +75,21 @@ class perkReader(commands.Cog):
         # SteamID - We search for the steamid
         steamid, trash = message.split("]", 1)
         steamid = steamid.translate({ord('['): None})
-        steamid = steamid.translate({ord(' '): None}) #fix unknown space issue
+        steamid = steamid.translate({ord(' '): None})  #fix unknown space issue
         # Ignore the id at the start of the message, no idea what it's for
-        message = message[message.find("[", 2) + 1 :]
+        message = message[message.find("[", 2) + 1:]
 
         # Next is the name which we use to get the user
         name, message = message.split("]", 1)
         userHandler = self.bot.get_cog("userReader")
         user = userHandler.getUser(name)
         char_name = userHandler.getCharName(name) if fromUpdate and user else None
-        log_char_string =  char_name if char_name else ""
+        log_char_string = char_name if char_name else ""
 
         # Then position which we set if it's more recent
-        x = message[1 : message.find(",")]
-        y = message[message.find(",") + 1 : message.find(",", message.find(",") + 1)]
-        message = message[message.find("[", 2) + 1 :]
+        x = message[1: message.find(",")]
+        y = message[message.find(",") + 1: message.find(",", message.find(",") + 1)]
+        message = message[message.find("[", 2) + 1:]
 
         if timestamp > user.lastSeen:
             user.lastSeen = timestamp
@@ -99,24 +105,26 @@ class perkReader(commands.Cog):
             if int(hours) > int(user.recordHoursAlive):
                 user.recordHoursAlive = hours
 
-
         if type == "Died":
             user.died.append(timestamp)
             if timestamp > self.lastUpdateTimestamp:
                 self.bot.log.info(f"perkReader.py : Died : {user.name}")
                 if self.notifyDeath:
                     for member in self.bot.get_all_members():
-                        self.bot.log.debug(f"perkReader.py : Died: discord username: {member}") # debug show discord channel member
-                            
+                        self.bot.log.debug(
+                            f"perkReader.py : Died: discord username: {member}")  # debug show discord channel member
+
                         if user.name.lower() in member.name:
                             avatar = member.display_avatar
-                            
-                            self.bot.log.debug(f"perkReader.py : Died : --------MATCH--------") # degug show the username match with discord 
+
+                            self.bot.log.debug(
+                                f"perkReader.py : Died : --------MATCH--------")  # degug show the username match with discord
                         else:
-                            self.bot.log.debug(f"perkReader.py : Died : no match")  # degug show their is no match with discord
-                                
-                    self.bot.log.debug(f"perkReader.py : Died : avatarurl : {avatar}") # degug show avatar url
-                        
+                            self.bot.log.debug(
+                                f"perkReader.py : Died : no match")  # degug show their is no match with discord
+
+                    self.bot.log.debug(f"perkReader.py : Died : avatarurl : {avatar}")  # degug show avatar url
+
                     return modules.embed.death(
                         timestamp, user.name, log_char_string, avatar, user.hoursAlive
                     )
@@ -124,23 +132,26 @@ class perkReader(commands.Cog):
         elif type == "Login":
             if timestamp > self.lastUpdateTimestamp:
                 user.online = True
-                self.bot.log.debug(f"LOGIN USERNAME: {user.name.lower()}") # debug show the username who resume is game
+                self.bot.log.debug(f"LOGIN USERNAME: {user.name.lower()}")  # debug show the username who resume is game
                 if self.notifyJoin:
                     # we check in the discord channel for a username match
                     for member in self.bot.get_all_members():
-                    
-                        self.bot.log.debug(f"perkReader.py : Login : discord username: {member}") # debug show discord channel member
-                            
+
+                        self.bot.log.debug(
+                            f"perkReader.py : Login : discord username: {member}")  # debug show discord channel member
+
                         if user.name.lower() in member.name:
                             avatar = member.display_avatar
-        
-                            self.bot.log.debug(f"perkReader.py : Login : --------MATCH--------") # degug show the username match with discord
-                                
+
+                            self.bot.log.debug(
+                                f"perkReader.py : Login : --------MATCH--------")  # degug show the username match with discord
+
                         else:
-                            self.bot.log.debug(f"perkReader.py : Login : no match") # degug show their is no match with discord
-                                
-                    self.bot.log.debug(f"perkReader.py : Login : avatarurl : {avatar}") # degug show avatar url
-               
+                            self.bot.log.debug(
+                                f"perkReader.py : Login : no match")  # degug show their is no match with discord
+
+                    self.bot.log.debug(f"perkReader.py : Login : avatarurl : {avatar}")  # degug show avatar url
+
                     return modules.embed.resume(
                         timestamp, user.name, log_char_string, avatar, user.hoursAlive)
 
@@ -148,26 +159,29 @@ class perkReader(commands.Cog):
             if timestamp > self.lastUpdateTimestamp:
                 user.online = True
                 self.bot.log.info(f"perkReader.py : new character : {user.name}")
-                
 
-                self.bot.log.info(f"perkReader.py : Created Player : player PZ username : {user.name.lower()}") # debug show the username who created a player
-                
+                self.bot.log.info(
+                    f"perkReader.py : Created Player : player PZ username : {user.name.lower()}")  # debug show the username who created a player
+
                 if self.notifyCreateChar:
                     for member in self.bot.get_all_members():
-                    
-                        self.bot.log.debug(f"perkReader.py : Created Player : discord username : {member}")  # debug show discord channel member
-                            
+
+                        self.bot.log.debug(
+                            f"perkReader.py : Created Player : discord username : {member}")  # debug show discord channel member
+
                         if user.name.lower() in member.name:
                             avatar = member.display_avatar
-                            
-                            self.bot.log.debug(f"perkReader.py : Created Player : --------MATCH--------")  # degug show the username match with discord
-                                 
-                        else:
-                            self.bot.log.debug(f"perkReader.py : Created Player : no match") # degug show their is no match with discord
-                                
 
-                    self.bot.log.debug(f"perkReader.py : Created Player : avatarurl : {avatar}") # degug show avatar url
-                    
+                            self.bot.log.debug(
+                                f"perkReader.py : Created Player : --------MATCH--------")  # degug show the username match with discord
+
+                        else:
+                            self.bot.log.debug(
+                                f"perkReader.py : Created Player : no match")  # degug show their is no match with discord
+
+                    self.bot.log.debug(
+                        f"perkReader.py : Created Player : avatarurl : {avatar}")  # degug show avatar url
+
                 return modules.embed.join(timestamp, user.name, log_char_string, avatar)
 
         elif type == "Level Changed":
@@ -177,33 +191,38 @@ class perkReader(commands.Cog):
             user.perks[perk] = level
             if timestamp > self.lastUpdateTimestamp:
                 self.bot.log.info(f"perkReader.py : Level Changed : {user.name} {perk} changed to {level}")
-                self.bot.log.debug(f"perkReader.py : Level Changed : {user.name.lower()}") # debug show the username who changed perk
+                self.bot.log.debug(
+                    f"perkReader.py : Level Changed : {user.name.lower()}")  # debug show the username who changed perk
                 if self.notifyPerk and not modules.usersData.UsersData.isSrjReading(self, self.dataPath, user.name):
                     for member in self.bot.get_all_members():
-                        self.bot.log.debug(f"perkReader.py : Level Changed : discord username : {member}") # debug show discord channel member
+                        self.bot.log.debug(
+                            f"perkReader.py : Level Changed : discord username : {member}")  # debug show discord channel member
                         if user.name.lower() in member.name:
                             avatar = member.display_avatar
-                            self.bot.log.debug(f"perkReader.py : Level Changed : --------MATCH--------") # degug show the username match with discord
+                            self.bot.log.debug(
+                                f"perkReader.py : Level Changed : --------MATCH--------")  # degug show the username match with discord
                         else:
-                            self.bot.log.debug(f"perkReader.py : Level Changed : no match") # degug show their is no match with discord
-                    
-                        self.bot.log.debug(f"perkReader.py : Level Changed : avatarurl {avatar}")  # degug show avatar url
-                        
+                            self.bot.log.debug(
+                                f"perkReader.py : Level Changed : no match")  # degug show their is no match with discord
+
+                        self.bot.log.debug(
+                            f"perkReader.py : Level Changed : avatarurl {avatar}")  # degug show avatar url
+
                     return modules.embed.perk(
                         timestamp, user.name, log_char_string, avatar, perk, level
                     )
-                        
-                        
-     # Skill Recovery Journal Support
+
+
+        # Skill Recovery Journal Support
         elif type == "SRJ START READING":
             if timestamp > self.lastUpdateTimestamp:
                 self.bot.log.info(f"perkReader.py : Skill Recovery Journal : Start : {user.name}")
-                start_timestamp = datetime.now() + timedelta(minutes = 5)
+                start_timestamp = datetime.now() + timedelta(minutes=5)
                 start_timestamp = start_timestamp.timestamp()
                 modules.usersData.UsersData.srjStartReading(self, self.dataPath, user.name, start_timestamp)
                 return modules.embed.srj(
-                        timestamp, user.name, log_char_string
-                    )
+                    timestamp, user.name, log_char_string
+                )
         elif type == "SRJ STOP READING":
             if timestamp > self.lastUpdateTimestamp:
                 self.bot.log.info(f"perkReader.py : Skill Recovery Journal : Stop : {user.name}")
